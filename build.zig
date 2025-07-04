@@ -2,10 +2,11 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const enable = b.option(bool, "enable", "Enable profiling") orelse false;
-    const callstack = b.option(bool, "callstack", "Include callstacks in profile") orelse false;
+    const enable = b.option(bool, "enable", "Enable profiling (default: false)") orelse false;
+    const sampling = b.option(bool, "sampling", "Enable sampling (default: true)") orelse true;
+    const callstack = b.option(u32, "callstack", "Number of stack frames to include in profile (default: 0)") orelse 0;
     const allocation = b.option(bool, "allocation", "Include allocation information in profile") orelse false;
-    const no_exit = b.option(bool, "no_exit", "Wait for server to attach before exiting") orelse false;
+    const wait = b.option(bool, "wait", "Wait for server to attach before exiting") orelse false;
 
     const upstream = b.dependency("upstream", .{});
 
@@ -21,14 +22,14 @@ pub fn build(b: *std.Build) void {
             .file = upstream.path("public/TracyClient.cpp"),
             .flags = &.{ "-std=c++11", "-Werror", "-DTRACY_ENABLE", "-fno-sanitize=undefined" },
         });
-        if (no_exit) {
-            mod.addCMacro("TRACY_NO_EXIT", "");
-        }
+        if (!sampling) mod.addCMacro("TRACY_NO_SAMPLING", "");
+        if (wait) mod.addCMacro("TRACY_NO_EXIT", "");
     }
 
     const options = b.addOptions();
     options.addOption(bool, "enable_tracy", enable);
-    options.addOption(bool, "enable_tracy_callstack", callstack);
+    options.addOption(bool, "enable_tracy_callstack", callstack != 0);
+    options.addOption(u32, "tracy_callstack_depth", callstack);
     options.addOption(bool, "enable_tracy_allocation", allocation);
     mod.addImport("build_options", options.createModule());
 
