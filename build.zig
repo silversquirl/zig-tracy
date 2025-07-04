@@ -19,7 +19,7 @@ pub fn build(b: *std.Build) void {
         mod.link_libcpp = true;
         mod.addCSourceFile(.{
             .file = upstream.path("public/TracyClient.cpp"),
-            .flags = &.{ "-std=c++11", "-Werror", "-DTRACY_ENABLE" },
+            .flags = &.{ "-std=c++11", "-Werror", "-DTRACY_ENABLE", "-fno-sanitize=undefined" },
         });
         if (no_exit) {
             mod.addCMacro("TRACY_NO_EXIT", "");
@@ -31,6 +31,21 @@ pub fn build(b: *std.Build) void {
     options.addOption(bool, "enable_tracy_callstack", callstack);
     options.addOption(bool, "enable_tracy_allocation", allocation);
     mod.addImport("build_options", options.createModule());
+
+    {
+        const cli = b.step("update-bindings", "Update tracy bindings by fetching from Zig's github repository");
+
+        const url_template = "https://raw.githubusercontent.com/ziglang/zig/{s}/src/tracy.zig";
+
+        const url = if (builtin.zig_version.build) |commit|
+            b.fmt(url_template, .{commit})
+        else
+            b.fmt(url_template, .{"refs/tags/" ++ builtin.zig_version_string});
+
+        const fetch = b.addSystemCommand(&.{ "curl", "-sSLf", "-o", "src/tracy.zig", url });
+        cli.dependOn(&fetch.step);
+    }
 }
 
 const std = @import("std");
+const builtin = @import("builtin");
