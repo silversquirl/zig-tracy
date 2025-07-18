@@ -4,7 +4,7 @@ This is a standalone version of the Zig compiler's [Tracy bindings](https://gith
 
 ## Usage
 
-1. Add this repo as a dependency: `zig fetch --save https://github.com/silversquirl/zig-tracy`
+1. Add this repo as a dependency: `zig fetch --save git+https://github.com/silversquirl/zig-tracy`
 2. Add the tracy module to your executable in your build.zig:
    ```zig
    [...]
