@@ -22,7 +22,7 @@ pub fn build(b: *std.Build) void {
             mod.link_libcpp = true;
             mod.addCSourceFile(.{
                 .file = upstream.path("public/TracyClient.cpp"),
-                .flags = &.{ "-std=c++11", "-Werror", "-Wno-unused-result", "-DTRACY_ENABLE", "-fno-sanitize=undefined" },
+                .flags = &.{ "-std=c++11", "-Wno-unused-result", "-DTRACY_ENABLE", "-fno-sanitize=undefined" },
             });
             if (!sampling) mod.addCMacro("TRACY_NO_SAMPLING", "");
             if (wait) mod.addCMacro("TRACY_NO_EXIT", "");
